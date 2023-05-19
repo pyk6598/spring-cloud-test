@@ -1,0 +1,57 @@
+server:
+  port: 9999
+
+eureka:
+  client:
+    eureka-server-connect-timeout-seconds: 3
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: gateway # /actuator/gateway/routes 주소로 확인
+  endpoint:
+    gateway:
+      enabled: true # default: true
+
+
+spring:
+  application:
+    name: gateway-1
+  cloud:
+    gateway:
+#      discovery:
+#        locator:
+#          enabled: true
+#          lower-case-service-id: true
+#          filters:
+#          - RemoveTerminatedServices
+      httpclient:
+        connect-timeout: 1000
+        response-timeout: 10s
+#      default-filters:
+#      - name: Retry
+#        args:
+#          retries: 3
+#          statuses: BAD_GATEWAY
+#          methods: GET,POST
+#          backoff:
+#            firstBackoff: 10ms
+#            maxBackoff: 50ms
+#            factor: 2
+#            basedOnPreviousValue: false
+      routes:
+      - id: service-1
+        predicates:
+        - 'Path=/service-1/**' 
+        uri: lb://service-1
+        filters:
+        - RewritePath=/service-1/(?<segment>.*), /$\{segment}
+      - id: service-2
+        predicates:
+        - 'Path=/service-2/**'
+        uri: lb://service-2
+        filters:
+        - RewritePath=/service-2/(?<segment>.*), /$\{segment}
